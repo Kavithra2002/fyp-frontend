@@ -1,8 +1,11 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FYP Forecast & XAI – Frontend
+
+Next.js + TypeScript + shadcn UI for the forecasting and explainable AI platform (UC1–UC6).  
+See `IMPLEMENTATION_SUMMARY.md` for what to implement and how it maps to your report.
 
 ## Getting Started
 
-First, run the development server:
+Install and run the dev server:
 
 ```bash
 npm run dev
@@ -14,9 +17,9 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). `/` redirects to `/dashboard`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**Backend:** Set `NEXT_PUBLIC_API_URL` to your Node API (e.g. `http://localhost:4000/api`) or use the `rewrites` in `next.config.ts` to proxy `/api` to the backend. The `services/api.ts` client is wired for `/api/forecast`, `/api/explain`, `/api/scenario`, `/api/models`, `/api/data`, `/api/export`.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
