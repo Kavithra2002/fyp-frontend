@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { BarChart3, UserPlus, AlertCircle } from "lucide-react";
 import { authApi, setAuthToken } from "@/services/api";
+import { BackendStatus, type BackendConnectionStatus } from "@/components/Common/BackendStatus";
 
 const ERROR_DURATION_MS = 3000;
 
@@ -17,7 +18,9 @@ export default function RegisterPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [backendStatus, setBackendStatus] = useState<BackendConnectionStatus>("checking");
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const backendOnline = backendStatus === "online";
 
   useEffect(() => {
     if (!error) return;
@@ -30,6 +33,10 @@ export default function RegisterPage() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    if (!backendOnline) {
+      setError("Backend is offline. Start it first, then register.");
+      return;
+    }
     const form = e.currentTarget;
     const email = (form.elements.namedItem("email") as HTMLInputElement)?.value?.trim();
     const password = (form.elements.namedItem("password") as HTMLInputElement)?.value;
@@ -73,6 +80,9 @@ export default function RegisterPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="mb-4">
+            <BackendStatus variant="inline" onStatusChange={setBackendStatus} />
+          </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <Alert variant="destructive" className="py-3">
@@ -117,16 +127,20 @@ export default function RegisterPage() {
                 disabled={loading}
               />
             </div>
-            <Button type="submit" className="w-full h-10" size="lg" disabled={loading}>
+            <Button type="submit" className="w-full h-10" size="lg" disabled={loading || !backendOnline}>
               <UserPlus className="mr-2 h-4 w-4" />
-              {loading ? "Creating account…" : "Register"}
+              {!backendOnline ? "Start backend to register" : loading ? "Creating account…" : "Register"}
             </Button>
           </form>
           <p className="mt-4 text-center text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link href="/login" className="underline hover:text-foreground">
-              Sign in
-            </Link>
+            {backendOnline ? (
+              <Link href="/login" className="underline hover:text-foreground">
+                Sign in
+              </Link>
+            ) : (
+              <span className="opacity-60">Sign in</span>
+            )}
           </p>
         </CardContent>
       </Card>

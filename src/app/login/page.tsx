@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { BarChart3, LogIn, AlertCircle } from "lucide-react";
 import { authApi, setAuthToken } from "@/services/api";
+import { BackendStatus, type BackendConnectionStatus } from "@/components/Common/BackendStatus";
 
 const ERROR_DURATION_MS = 2000;
 
@@ -17,7 +18,9 @@ export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [backendStatus, setBackendStatus] = useState<BackendConnectionStatus>("checking");
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const backendOnline = backendStatus === "online";
 
   // Show error for 2 seconds, then clear it so the login form is ready to try again
   useEffect(() => {
@@ -31,6 +34,10 @@ export default function LoginPage() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    if (!backendOnline) {
+      setError("Backend is offline. Start it first, then sign in.");
+      return;
+    }
     const form = e.currentTarget;
     const email = (form.elements.namedItem("email") as HTMLInputElement)?.value?.trim();
     const password = (form.elements.namedItem("password") as HTMLInputElement)?.value;
@@ -69,6 +76,9 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="mb-4">
+            <BackendStatus variant="inline" onStatusChange={setBackendStatus} />
+          </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <Alert variant="destructive" className="py-3">
@@ -103,16 +113,31 @@ export default function LoginPage() {
                 disabled={loading}
               />
             </div>
-            <Button type="submit" className="w-full h-10" size="lg" disabled={loading || !!error}>
+            <Button
+              type="submit"
+              className="w-full h-10"
+              size="lg"
+              disabled={loading || !!error || !backendOnline}
+            >
               <LogIn className="mr-2 h-4 w-4" />
-              {loading ? "Signing in…" : error ? "Try again in 2s…" : "Sign in"}
+              {!backendOnline
+                ? "Start backend to sign in"
+                : loading
+                  ? "Signing in…"
+                  : error
+                    ? "Try again in 2s…"
+                    : "Sign in"}
             </Button>
           </form>
           <p className="mt-4 text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
-            <Link href="/register" className="underline hover:text-foreground">
-              Register
-            </Link>
+            {backendOnline ? (
+              <Link href="/register" className="underline hover:text-foreground">
+                Register
+              </Link>
+            ) : (
+              <span className="opacity-60">Register</span>
+            )}
           </p>
         </CardContent>
       </Card>
