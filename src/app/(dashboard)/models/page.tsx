@@ -35,6 +35,7 @@ export default function ModelManagementPage() {
   const [loadingDatasets, setLoadingDatasets] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [training, setTraining] = useState(false);
+  const [registeringDemo, setRegisteringDemo] = useState(false);
   const [datasetId, setDatasetId] = useState("");
   const [modelType, setModelType] = useState<ModelType | "">("");
 
@@ -97,7 +98,28 @@ export default function ModelManagementPage() {
     }
   }
 
+  async function handleRegisterDemo() {
+    setRegisteringDemo(true);
+    setError(null);
+    try {
+      await modelsApi.register({
+        name: "Demo LSTM",
+        type: "lstm",
+        modelKey: "lstm",
+        mae: 0.15,
+        rmse: 0.22,
+        mape: 12.5,
+      });
+      await loadModels();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to register demo model");
+    } finally {
+      setRegisteringDemo(false);
+    }
+  }
+
   const canTrain = Boolean(datasetId && modelType && !training);
+  const hasDemoLstm = models.some((m) => m.modelKey === "lstm");
 
   return (
     <div className="space-y-6 p-6">
@@ -113,6 +135,24 @@ export default function ModelManagementPage() {
           {error}
         </div>
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Use demo model (no training)</CardTitle>
+          <CardDescription>
+            Add the Demo LSTM so forecast and explain use the Python ML service (demo predictions).
+          </CardDescription>
+          <div className="mt-4">
+            <Button
+              variant="secondary"
+              onClick={handleRegisterDemo}
+              disabled={registeringDemo || hasDemoLstm}
+            >
+              {registeringDemo ? "Adding…" : hasDemoLstm ? "Demo LSTM already added" : "Add Demo LSTM"}
+            </Button>
+          </div>
+        </CardHeader>
+      </Card>
 
       <Card>
         <CardHeader>

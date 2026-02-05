@@ -21,11 +21,23 @@ export interface Model {
   name: string;
   type: ModelType;
   datasetId: string;
+  modelKey?: string;
   mae?: number;
   rmse?: number;
   mape?: number;
   trainedAt: string;
   isActive?: boolean;
+}
+
+/** Register a Colab-trained or demo model (backend loads from ml-service/models/<modelKey>/). */
+export interface RegisterModelRequest {
+  name: string;
+  type: ModelType;
+  modelKey: string;
+  datasetId?: string;
+  mae?: number;
+  rmse?: number;
+  mape?: number;
 }
 
 export interface TrainRequest {

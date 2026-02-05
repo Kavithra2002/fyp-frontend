@@ -6,6 +6,7 @@
 import type {
   Dataset,
   Model,
+  RegisterModelRequest,
   TrainRequest,
   ForecastRequest,
   ForecastResponse,
@@ -118,6 +119,11 @@ export const modelsApi = {
   list: () => request<Model[]>("/models"),
   get: (id: string) => request<Model>(`/models/${id}`),
   setActive: (id: string) => request<{ ok: boolean }>(`/models/${id}/active`, { method: "PUT" }),
+  register: (body: RegisterModelRequest) =>
+    request<Model>("/models/register", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   train: (body: TrainRequest) =>
     request<{ jobId: string; model?: Model }>("/models/train", {
       method: "POST",
