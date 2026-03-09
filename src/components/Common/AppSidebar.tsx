@@ -10,11 +10,8 @@ import {
   Database,
   FileDown,
   BookOpen,
-  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { setAuthToken } from "@/services/api";
-import { ThemeToggle } from "@/components/Common/ThemeToggle";
 
 const mainNav = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -67,17 +64,6 @@ export function AppSidebar() {
           {systemInfoNav.label}
         </Link>
       </nav>
-      <div className="border-t border-sidebar-border p-2 flex items-center justify-between gap-2">
-        <Link
-          href="/login"
-          onClick={() => setAuthToken(null)}
-          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
-        >
-          <LogOut className="h-4 w-4 shrink-0" />
-          Sign out
-        </Link>
-        <ThemeToggle size="icon" variant="ghost" className="shrink-0" />
-      </div>
     </aside>
   );  
 }
