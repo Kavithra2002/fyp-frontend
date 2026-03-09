@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { setAuthToken } from "@/services/api";
+import { ThemeToggle } from "@/components/Common/ThemeToggle";
 
 const nav = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -50,7 +51,7 @@ export function AppSidebar() {
           </Link>
         ))}
       </nav>
-      <div className="border-t border-sidebar-border p-2">
+      <div className="border-t border-sidebar-border p-2 flex items-center justify-between gap-2">
         <Link
           href="/login"
           onClick={() => setAuthToken(null)}
@@ -59,6 +60,7 @@ export function AppSidebar() {
           <LogOut className="h-4 w-4 shrink-0" />
           Sign out
         </Link>
+        <ThemeToggle size="icon" variant="ghost" className="shrink-0" />
       </div>
     </aside>
   );  
