@@ -65,5 +65,5 @@ export function AppSidebar() {
         </Link>
       </nav>
     </aside>
-  );  
+  );
 }
