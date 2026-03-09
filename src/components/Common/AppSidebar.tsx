@@ -9,13 +9,14 @@ import {
   Cpu,
   Database,
   FileDown,
+  BookOpen,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { setAuthToken } from "@/services/api";
 import { ThemeToggle } from "@/components/Common/ThemeToggle";
 
-const nav = [
+const mainNav = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Explainability", href: "/explainability", icon: Lightbulb },
   { label: "Scenario Analysis", href: "/scenario-analysis", icon: GitCompare },
@@ -23,6 +24,8 @@ const nav = [
   { label: "Data Management", href: "/data", icon: Database },
   { label: "Export", href: "/export", icon: FileDown },
 ];
+
+const systemInfoNav = { label: "System Info", href: "/system-info", icon: BookOpen };
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -35,7 +38,7 @@ export function AppSidebar() {
         </Link>
       </div>
       <nav className="flex-1 space-y-1 p-2">
-        {nav.map(({ label, href, icon: Icon }) => (
+        {mainNav.map(({ label, href, icon: Icon }) => (
           <Link
             key={href}
             href={href}
@@ -50,6 +53,19 @@ export function AppSidebar() {
             {label}
           </Link>
         ))}
+        <div className="my-2 border-t border-sidebar-border" />
+        <Link
+          href={systemInfoNav.href}
+          className={cn(
+            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+            pathname === systemInfoNav.href
+              ? "bg-sidebar-accent text-sidebar-accent-foreground"
+              : "text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
+          )}
+        >
+          <BookOpen className="h-4 w-4 shrink-0" />
+          {systemInfoNav.label}
+        </Link>
       </nav>
       <div className="border-t border-sidebar-border p-2 flex items-center justify-between gap-2">
         <Link
