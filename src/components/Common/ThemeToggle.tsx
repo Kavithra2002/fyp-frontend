@@ -2,6 +2,7 @@
 
 import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -27,7 +28,13 @@ export function ThemeToggle({
 }: ThemeToggleProps) {
   const { theme, setTheme, resolvedTheme } = useTheme();
 
-  const Icon = resolvedTheme === "dark" ? Moon : Sun;
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+
+  // `resolvedTheme` is client-derived (localStorage). Avoid SSR/client mismatches by
+  // rendering a stable first pass until after mount.
+  const effectiveTheme = mounted ? resolvedTheme : "light";
+  const Icon = effectiveTheme === "dark" ? Moon : Sun;
 
   return (
     <DropdownMenu>
@@ -37,11 +44,12 @@ export function ThemeToggle({
           size={size}
           className={cn(showLabel && "w-full justify-start gap-3", className)}
           aria-label="Toggle theme"
+          suppressHydrationWarning
         >
           <Icon className="h-4 w-4 shrink-0" />
           {showLabel && (
             <span className="font-medium">
-              {resolvedTheme === "dark" ? "Dark" : "Light"}
+              {effectiveTheme === "dark" ? "Dark" : "Light"}
             </span>
           )}
         </Button>
