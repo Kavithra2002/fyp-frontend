@@ -79,18 +79,52 @@ async function requestBlob(path: string, init?: RequestInit): Promise<Blob> {
 }
 
 // ---- Auth ----
+export type AppUser = {
+  id: string;
+  email: string;
+  name: string | null;
+  role?: "admin" | "user";
+  status?: "active" | "inactive" | string;
+};
+
 export const authApi = {
   register: (body: { email: string; password: string; name?: string }) =>
-    request<{ user: { id: string; email: string; name: string | null }; token: string }>("/auth/register", {
+    request<{ user: AppUser; token: string }>("/auth/register", {
       method: "POST",
       body: JSON.stringify(body),
     }),
   login: (body: { email: string; password: string }) =>
-    request<{ user: { id: string; email: string; name: string | null }; token: string }>("/auth/login", {
+    request<{ user: AppUser; token: string }>("/auth/login", {
       method: "POST",
       body: JSON.stringify(body),
     }),
-  me: () => request<{ user: { id: string; email: string; name: string | null } }>("/auth/me"),
+  me: () => request<{ user: AppUser }>("/auth/me"),
+  listUsers: () => request<{ users: AppUser[] }>("/auth/users"),
+  createUser: (body: {
+    email: string;
+    password: string;
+    name?: string;
+    role?: "admin" | "user";
+    status?: "active" | "inactive";
+  }) =>
+    request<{ user: AppUser }>("/auth/users", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  updateUser: (
+    id: string,
+    body: Partial<{
+      email: string;
+      password: string;
+      name: string;
+      role: "admin" | "user";
+      status: "active" | "inactive";
+    }>
+  ) =>
+    request<{ success: boolean }>("/auth/users/" + id, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
 };
 
 // ---- Data (UC6) ----

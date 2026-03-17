@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -10,8 +11,10 @@ import {
   Database,
   FileDown,
   BookOpen,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { authApi, type AppUser } from "@/services/api";
 
 const mainNav = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -22,10 +25,29 @@ const mainNav = [
   { label: "Export", href: "/export", icon: FileDown },
 ];
 
+const adminNav = { label: "Users", href: "/users", icon: Users };
 const systemInfoNav = { label: "System Info", href: "/system-info", icon: BookOpen };
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    authApi
+      .me()
+      .then((res) => {
+        if (!cancelled) setCurrentUser(res.user);
+      })
+      .catch(() => {
+        if (!cancelled) setCurrentUser(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const isAdmin = (currentUser?.role ?? "user") === "admin";
 
   return (
     <aside className="flex h-full w-56 flex-col border-r border-border bg-sidebar">
@@ -50,6 +72,23 @@ export function AppSidebar() {
             {label}
           </Link>
         ))}
+        {isAdmin && (
+          <>
+            <div className="my-2 border-t border-sidebar-border" />
+            <Link
+              href={adminNav.href}
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                pathname === adminNav.href
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
+              )}
+            >
+              <Users className="h-4 w-4 shrink-0" />
+              {adminNav.label}
+            </Link>
+          </>
+        )}
         <div className="my-2 border-t border-sidebar-border" />
         <Link
           href={systemInfoNav.href}

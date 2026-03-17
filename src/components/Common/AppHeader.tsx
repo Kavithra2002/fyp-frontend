@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { LogOut, User, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { setAuthToken, authApi } from "@/services/api";
+import { setAuthToken, authApi, type AppUser } from "@/services/api";
 import { ThemeToggle } from "@/components/Common/ThemeToggle";
 import { buttonVariants } from "@/components/ui/button";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
-type UserInfo = { id: string; email: string; name: string | null };
+type UserInfo = AppUser;
 
 export function AppHeader() {
   const [user, setUser] = useState<UserInfo | null>(null);
