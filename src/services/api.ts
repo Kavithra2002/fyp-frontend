@@ -43,6 +43,18 @@ function on401(res: Response): void {
   }
 }
 
+function parseErrorMessage(raw: string, status: number): string {
+  const fallback = raw || `HTTP ${status}`;
+  if (!raw) return fallback;
+  try {
+    const parsed = JSON.parse(raw) as { error?: string; detail?: string; message?: string };
+    if (parsed.error && parsed.detail) return `${parsed.error} (${parsed.detail})`;
+    return parsed.error || parsed.message || parsed.detail || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 function url(path: string, params?: Record<string, string>): string {
   const p = path.startsWith("/") ? path : `/${path}`;
   const s = BASE + p;
@@ -64,7 +76,7 @@ async function request<T>(
   if (!res.ok) {
     on401(res);
     const t = await res.text();
-    throw new Error(t || `HTTP ${res.status}`);
+    throw new Error(parseErrorMessage(t, res.status));
   }
   return res.json() as Promise<T>;
 }
@@ -73,7 +85,7 @@ async function requestBlob(path: string, init?: RequestInit): Promise<Blob> {
   const res = await fetch(url(path), { ...init, headers: { ...authHeaders(), ...init?.headers } });
   if (!res.ok) {
     on401(res);
-    throw new Error(await res.text() || `HTTP ${res.status}`);
+    throw new Error(parseErrorMessage(await res.text(), res.status));
   }
   return res.blob();
 }
@@ -142,7 +154,7 @@ export const dataApi = {
     });
     if (!res.ok) {
       on401(res);
-      throw new Error(await res.text() || `HTTP ${res.status}`);
+      throw new Error(parseErrorMessage(await res.text(), res.status));
     }
     return res.json() as Promise<Dataset>;
   },
@@ -206,7 +218,7 @@ export const exportApi = {
     });
     if (!res.ok) {
       on401(res);
-      throw new Error(await res.text() || `HTTP ${res.status}`);
+      throw new Error(parseErrorMessage(await res.text(), res.status));
     }
     return res.blob();
   },
