@@ -19,7 +19,7 @@ export function AttentionChart({ data }: { data: { step: number; weight: number 
           <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
           <XAxis dataKey="step" className="text-xs" label={{ value: "Step", position: "insideBottom", offset: -5 }} />
           <YAxis className="text-xs" label={{ value: "Weight", angle: -90, position: "insideLeft" }} />
-          <Tooltip formatter={(v: number) => [v.toFixed(3), "Weight"]} />
+          <Tooltip formatter={(v: number | string | undefined) => [Number(v ?? 0).toFixed(3), "Weight"]} />
           <Bar dataKey="weight" fill="var(--chart-2)" radius={[4, 4, 0, 0]} name="Attention" />
         </BarChart>
       </ResponsiveContainer>

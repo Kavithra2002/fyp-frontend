@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { LogOut, User, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { setAuthToken, authApi, type AppUser } from "@/services/api";
+import { authApi, type AppUser } from "@/services/api";
 import { ThemeToggle } from "@/components/Common/ThemeToggle";
 import { buttonVariants } from "@/components/ui/button";
 import { Button } from "@/components/ui/button";
@@ -19,8 +20,18 @@ import {
 type UserInfo = AppUser;
 
 export function AppHeader() {
+  const router = useRouter();
   const [user, setUser] = useState<UserInfo | null>(null);
   const [userLoading, setUserLoading] = useState(true);
+  async function handleLogout() {
+    try {
+      await authApi.logout();
+    } finally {
+      router.push("/login");
+      router.refresh();
+    }
+  }
+
 
   useEffect(() => {
     authApi
@@ -79,7 +90,10 @@ export function AppHeader() {
         </DropdownMenu>
         <Link
           href="/login"
-          onClick={() => setAuthToken(null)}
+          onClick={(e) => {
+            e.preventDefault();
+            void handleLogout();
+          }}
           className={cn(
             buttonVariants({ variant: "ghost", size: "sm" }),
             "text-muted-foreground hover:text-foreground"

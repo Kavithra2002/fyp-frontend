@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { scenarioApi } from "@/services/api";
 
 export default function ScenarioAnalysisPage() {
-  const [baseRunId, setBaseRunId] = useState("demo");
+  const [baseRunId, setBaseRunId] = useState("latest");
   const [price, setPrice] = useState(0.5);
   const [volume, setVolume] = useState(0.5);
   const [scenarioLoading, setScenarioLoading] = useState(false);
@@ -25,6 +25,8 @@ export default function ScenarioAnalysisPage() {
   const [result, setResult] = useState<{
     base: { name: string; forecast: number[]; summary?: number };
     scenario: { name: string; forecast: number[]; summary?: number };
+    baseRunId?: string;
+    scenarioRunId?: string;
   } | null>(null);
 
   async function handleRunScenario() {
@@ -71,7 +73,7 @@ export default function ScenarioAnalysisPage() {
         <CardHeader>
           <CardTitle>Base scenario</CardTitle>
           <CardDescription>
-            Base run ID passed to the API. Use &quot;demo&quot; for the mock; in production, select from saved forecast runs.
+            Base forecast run ID used for the what-if comparison. Use &quot;latest&quot; to automatically use your most recent forecast run.
           </CardDescription>
           <div className="mt-4 max-w-xs space-y-2">
             <Label htmlFor="base-run-id">Base run ID</Label>
@@ -79,8 +81,8 @@ export default function ScenarioAnalysisPage() {
               id="base-run-id"
               type="text"
               value={baseRunId}
-              onChange={(e) => setBaseRunId(e.target.value || "demo")}
-              placeholder="demo"
+              onChange={(e) => setBaseRunId(e.target.value || "latest")}
+              placeholder="latest"
               className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
           </div>
@@ -91,7 +93,7 @@ export default function ScenarioAnalysisPage() {
         <CardHeader>
           <CardTitle>Override drivers</CardTitle>
           <CardDescription>
-            Adjust price and volume factors (0–1). The mock uses these to scale the scenario forecast.
+            Adjust price and volume factors (0–1). These drivers scale the scenario forecast relative to the selected base run.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -141,6 +143,21 @@ export default function ScenarioAnalysisPage() {
         <CardContent className="space-y-6">
           {result ? (
             <>
+              {(result.baseRunId || result.scenarioRunId) && (
+                <div className="rounded-lg border bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
+                  {result.baseRunId && (
+                    <div>
+                      Base run used: <span className="font-medium text-foreground">{result.baseRunId}</span>
+                    </div>
+                  )}
+                  {result.scenarioRunId && (
+                    <div>
+                      Scenario run saved as:{" "}
+                      <span className="font-medium text-foreground">{result.scenarioRunId}</span>
+                    </div>
+                  )}
+                </div>
+              )}
               {(result.base.summary != null || result.scenario.summary != null) && (
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="rounded-lg border bg-muted/30 p-4">

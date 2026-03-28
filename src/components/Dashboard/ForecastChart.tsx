@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import {
   LineChart,
   Line,
@@ -22,16 +21,6 @@ const sampleForecast = [
 ];
 
 export function ForecastChart({ data = sampleForecast }: { data?: { date: string; actual?: number; forecast: number }[] }) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return <div className="h-[300px]" />;
-  }
-
   return (
     <div className="h-[300px]">
       <ResponsiveContainer width="100%" height="100%">

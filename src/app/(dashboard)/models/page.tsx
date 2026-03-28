@@ -2,10 +2,22 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { dataApi, modelsApi } from "@/services/api";
 import type { Dataset, Model, ModelType } from "@/lib/types";
+import { Trash2 } from "lucide-react";
 
 function formatDate(iso: string) {
   try {
@@ -38,6 +50,7 @@ export default function ModelManagementPage() {
   const [registeringDemo, setRegisteringDemo] = useState(false);
   const [datasetId, setDatasetId] = useState("");
   const [modelType, setModelType] = useState<ModelType | "">("");
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   const loadModels = useCallback(async () => {
     setLoading(true);
@@ -98,6 +111,21 @@ export default function ModelManagementPage() {
     }
   }
 
+  function confirmDeleteModel() {
+    const id = deleteTargetId;
+    if (!id) return;
+    setDeleteTargetId(null);
+    setError(null);
+    void (async () => {
+      try {
+        await modelsApi.remove(id);
+        await loadModels();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to delete model");
+      }
+    })();
+  }
+
   async function handleRegisterDemo() {
     setRegisteringDemo(true);
     setError(null);
@@ -138,9 +166,9 @@ export default function ModelManagementPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Use demo model (no training)</CardTitle>
+          <CardTitle>Add a ready-to-use model (no training)</CardTitle>
           <CardDescription>
-            Add the Demo LSTM so forecast and explain use the Python ML service (demo predictions).
+            Register a model key (e.g. &quot;lstm&quot;) so Forecast/Explain can call the Python ML service immediately.
           </CardDescription>
           <div className="mt-4">
             <Button
@@ -148,7 +176,7 @@ export default function ModelManagementPage() {
               onClick={handleRegisterDemo}
               disabled={registeringDemo || hasDemoLstm}
             >
-              {registeringDemo ? "Adding…" : hasDemoLstm ? "Demo LSTM already added" : "Add Demo LSTM"}
+              {registeringDemo ? "Adding…" : hasDemoLstm ? "LSTM model already added" : "Add LSTM model"}
             </Button>
           </div>
         </CardHeader>
@@ -158,7 +186,7 @@ export default function ModelManagementPage() {
         <CardHeader>
           <CardTitle>Train new model</CardTitle>
           <CardDescription>
-            Choose a dataset and model type. Training uses the backend (mock: returns immediately).
+            Choose a dataset and model type. Training uses the backend.
           </CardDescription>
           <div className="mt-4 flex flex-wrap items-end gap-4">
             <div className="space-y-2">
@@ -260,14 +288,25 @@ export default function ModelManagementPage() {
                       <td className="p-3">{m.mape != null ? `${m.mape.toFixed(2)}%` : "—"}</td>
                       <td className="p-3 text-muted-foreground">{formatDate(m.trainedAt)}</td>
                       <td className="p-3">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleSetActive(m.id)}
-                          disabled={m.isActive}
-                        >
-                          {m.isActive ? "Active" : "Set active"}
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleSetActive(m.id)}
+                            disabled={m.isActive}
+                          >
+                            {m.isActive ? "Active" : "Set active"}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setDeleteTargetId(m.id)}
+                            aria-label="Delete model"
+                            title="Delete model"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -277,6 +316,31 @@ export default function ModelManagementPage() {
           </div>
         </CardContent>
       </Card>
+
+      <AlertDialog
+        open={deleteTargetId !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTargetId(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete model?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove the model from the server. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className={cn(buttonVariants({ variant: "destructive" }))}
+              onClick={confirmDeleteModel}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

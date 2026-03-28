@@ -2,14 +2,13 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { BarChart3, LogIn, AlertCircle } from "lucide-react";
-import { authApi, setAuthToken } from "@/services/api";
+import { authApi } from "@/services/api";
 import { BackendStatus, type BackendConnectionStatus } from "@/components/Common/BackendStatus";
 import { ThemeToggle } from "@/components/Common/ThemeToggle";
 
@@ -50,8 +49,7 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      const { token } = await authApi.login({ email, password });
-      setAuthToken(token);
+      await authApi.login({ email, password });
       router.push("/dashboard");
       router.refresh();
     } catch (e) {
@@ -134,14 +132,7 @@ export default function LoginPage() {
             </Button>
           </form>
           <p className="mt-4 text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
-            {backendOnline ? (
-              <Link href="/register" className="underline hover:text-foreground">
-                Register
-              </Link>
-            ) : (
-              <span className="opacity-60">Register</span>
-            )}
+            New accounts are created by an administrator from the Users page.
           </p>
         </CardContent>
       </Card>

@@ -9,13 +9,50 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { BarChart3, UserPlus, AlertCircle } from "lucide-react";
-import { authApi, setAuthToken } from "@/services/api";
+import { authApi } from "@/services/api";
 import { BackendStatus, type BackendConnectionStatus } from "@/components/Common/BackendStatus";
 import { ThemeToggle } from "@/components/Common/ThemeToggle";
+
+/** Must match backend ALLOW_PUBLIC_REGISTRATION — set NEXT_PUBLIC_ALLOW_PUBLIC_REGISTRATION=true for local/E2E only */
+const allowPublicRegister = process.env.NEXT_PUBLIC_ALLOW_PUBLIC_REGISTRATION === "true";
 
 const ERROR_DURATION_MS = 3000;
 
 export default function RegisterPage() {
+  if (!allowPublicRegister) {
+    return <RegisterDisabled />;
+  }
+
+  return <RegisterForm />;
+}
+
+function RegisterDisabled() {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-muted/30 p-4">
+      <div className="absolute top-4 right-4 z-10">
+        <ThemeToggle variant="outline" size="icon" />
+      </div>
+      <Card className="relative w-full max-w-sm border-border/50 shadow-lg">
+        <CardHeader className="space-y-1 text-center pb-4">
+          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+            <BarChart3 className="h-6 w-6" />
+          </div>
+          <CardTitle className="text-2xl font-semibold tracking-tight">Self-registration is off</CardTitle>
+          <CardDescription>
+            An administrator must create your account from the Users page. Use the credentials they give you to sign in.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button asChild className="w-full">
+            <Link href="/login">Back to sign in</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function RegisterForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -54,8 +91,7 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      const { token } = await authApi.register({ email, password, name: name || undefined });
-      setAuthToken(token);
+      await authApi.register({ email, password, name: name || undefined });
       router.push("/dashboard");
       router.refresh();
     } catch (e) {

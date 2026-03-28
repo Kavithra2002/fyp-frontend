@@ -2,9 +2,21 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { cn } from "@/lib/utils";
 import { dataApi } from "@/services/api";
 import type { Dataset } from "@/lib/types";
+import { Trash2 } from "lucide-react";
 
 function formatDate(iso: string) {
   try {
@@ -23,6 +35,7 @@ export default function DataManagementPage() {
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadList = useCallback(async () => {
@@ -74,6 +87,22 @@ export default function DataManagementPage() {
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to set active");
     }
+  }
+
+  function confirmDeleteDataset() {
+    const id = deleteTargetId;
+    if (!id) return;
+    setDeleteTargetId(null);
+    setError(null);
+    void (async () => {
+      try {
+        await dataApi.remove(id);
+        if (selectedId === id) setSelectedId(null);
+        await loadList();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to delete dataset");
+      }
+    })();
   }
 
   const selected = selectedId ? datasets.find((d) => d.id === selectedId) : null;
@@ -184,14 +213,28 @@ export default function DataManagementPage() {
                       </td>
                       <td className="p-3 text-muted-foreground">{formatDate(d.uploadedAt)}</td>
                       <td className="p-3">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleSetActive(d.id)}
-                          disabled={d.isActive}
-                        >
-                          {d.isActive ? "Active" : "Set active"}
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleSetActive(d.id)}
+                            disabled={d.isActive}
+                          >
+                            {d.isActive ? "Active" : "Set active"}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteTargetId(d.id);
+                            }}
+                            aria-label="Delete dataset"
+                            title="Delete dataset"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -232,6 +275,31 @@ export default function DataManagementPage() {
           )}
         </CardContent>
       </Card>
+
+      <AlertDialog
+        open={deleteTargetId !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTargetId(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete dataset?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will also remove the uploaded CSV file from the server. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className={cn(buttonVariants({ variant: "destructive" }))}
+              onClick={confirmDeleteDataset}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

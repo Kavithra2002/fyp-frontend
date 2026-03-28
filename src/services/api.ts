@@ -18,27 +18,12 @@ import type {
 } from "@/lib/types";
 
 const BASE = (process.env.NEXT_PUBLIC_API_URL ?? "/api").replace(/\/$/, "");
-const AUTH_TOKEN_KEY = "fyp-token";
-
-export function getAuthToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem(AUTH_TOKEN_KEY);
-}
-
-export function setAuthToken(token: string | null): void {
-  if (typeof window === "undefined") return;
-  if (token) localStorage.setItem(AUTH_TOKEN_KEY, token);
-  else localStorage.removeItem(AUTH_TOKEN_KEY);
-}
-
 function authHeaders(): Record<string, string> {
-  const t = getAuthToken();
-  return t ? { Authorization: `Bearer ${t}` } : {};
+  return {};
 }
 
 function on401(res: Response): void {
   if (res.status === 401 && typeof window !== "undefined") {
-    setAuthToken(null);
     window.location.href = "/login";
   }
 }
@@ -71,6 +56,7 @@ async function request<T>(
   const { params, ...opts } = init ?? {};
   const res = await fetch(url(path, params), {
     ...opts,
+    credentials: "include",
     headers: { "Content-Type": "application/json", ...authHeaders(), ...opts.headers },
   });
   if (!res.ok) {
@@ -79,15 +65,6 @@ async function request<T>(
     throw new Error(parseErrorMessage(t, res.status));
   }
   return res.json() as Promise<T>;
-}
-
-async function requestBlob(path: string, init?: RequestInit): Promise<Blob> {
-  const res = await fetch(url(path), { ...init, headers: { ...authHeaders(), ...init?.headers } });
-  if (!res.ok) {
-    on401(res);
-    throw new Error(parseErrorMessage(await res.text(), res.status));
-  }
-  return res.blob();
 }
 
 // ---- Auth ----
@@ -109,6 +86,10 @@ export const authApi = {
     request<{ user: AppUser; token: string }>("/auth/login", {
       method: "POST",
       body: JSON.stringify(body),
+    }),
+  logout: () =>
+    request<{ ok: boolean }>("/auth/logout", {
+      method: "POST",
     }),
   me: () => request<{ user: AppUser }>("/auth/me"),
   listUsers: () => request<{ users: AppUser[] }>("/auth/users"),
@@ -144,11 +125,13 @@ export const dataApi = {
   list: () => request<Dataset[]>("/data"),
   get: (id: string) => request<Dataset>(`/data/${id}`),
   setActive: (id: string) => request<{ ok: boolean }>(`/data/${id}/active`, { method: "PUT" }),
+  remove: (id: string) => request<{ ok: boolean }>(`/data/${id}`, { method: "DELETE" }),
   upload: async (file: File) => {
     const fd = new FormData();
     fd.append("file", file);
     const res = await fetch(url("/data/upload"), {
       method: "POST",
+      credentials: "include",
       headers: authHeaders(),
       body: fd,
     });
@@ -165,6 +148,7 @@ export const modelsApi = {
   list: () => request<Model[]>("/models"),
   get: (id: string) => request<Model>(`/models/${id}`),
   setActive: (id: string) => request<{ ok: boolean }>(`/models/${id}/active`, { method: "PUT" }),
+  remove: (id: string) => request<{ ok: boolean }>(`/models/${id}`, { method: "DELETE" }),
   register: (body: RegisterModelRequest) =>
     request<Model>("/models/register", {
       method: "POST",
@@ -213,6 +197,7 @@ export const exportApi = {
   create: async (body: ExportRequest): Promise<Blob> => {
     const res = await fetch(url("/export"), {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json", ...authHeaders() },
       body: JSON.stringify(body),
     });
