@@ -1,9 +1,7 @@
 import { test, expect } from "@playwright/test";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const fixture = path.join(__dirname, "fixtures", "sample.csv");
+const fixture = path.resolve(__dirname, "fixtures", "sample.csv");
 
 test.describe("upload → train → forecast", () => {
   test("full UC1 path", async ({ page }) => {
@@ -20,7 +18,8 @@ test.describe("upload → train → forecast", () => {
     await page.getByRole("button", { name: "Set active" }).first().click();
 
     await page.goto("/models");
-    await page.locator("#train-dataset").selectOption({ label: /sample\.csv/i });
+    // Select the first real dataset option (index 1: skip placeholder).
+    await page.locator("#train-dataset").selectOption({ index: 1 });
     await page.locator("#train-type").selectOption("xgboost");
     await page.getByRole("button", { name: "Start training" }).click();
     await expect(page.getByText(/xgboost|XGBoost/i).first()).toBeVisible({ timeout: 60_000 });
