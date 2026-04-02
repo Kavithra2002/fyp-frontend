@@ -13,8 +13,14 @@ import { authApi } from "@/services/api";
 import { BackendStatus, type BackendConnectionStatus } from "@/components/Common/BackendStatus";
 import { ThemeToggle } from "@/components/Common/ThemeToggle";
 
-/** Must match backend ALLOW_PUBLIC_REGISTRATION — set NEXT_PUBLIC_ALLOW_PUBLIC_REGISTRATION=true for local/E2E only */
-const allowPublicRegister = process.env.NEXT_PUBLIC_ALLOW_PUBLIC_REGISTRATION === "true";
+/** 
+ * Must match backend ALLOW_PUBLIC_REGISTRATION in production.
+ * In non-production (dev/test), default to allowing self-registration so local
+ * dev and Playwright E2E can always exercise the full auth flow.
+ */
+const allowPublicRegister =
+  process.env.NEXT_PUBLIC_ALLOW_PUBLIC_REGISTRATION === "true" ||
+  process.env.NODE_ENV !== "production";
 
 const ERROR_DURATION_MS = 3000;
 
